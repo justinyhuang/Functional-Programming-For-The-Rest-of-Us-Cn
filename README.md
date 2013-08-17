@@ -1,4 +1,4 @@
-函数编程通俗演义
+傻瓜函数编程
 ============================================
 
 这篇文章是原文《(Functional Programming For The Rest of Us)[http://www.defmacro.org/ramblings/fp.html]》的中文翻译。     
