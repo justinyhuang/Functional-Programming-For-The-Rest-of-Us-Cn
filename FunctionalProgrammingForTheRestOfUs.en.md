@@ -249,11 +249,14 @@ Functional languages are extremely expressive. In a functional language one does
 
 Adapter pattern is best known when applied to the "default" abstraction unit in Java - a class. In functional languages the pattern is applied to functions. The pattern takes an interface and transforms it to another interface someone else expects. Here's an example of an adapter pattern:
 
+```java
 int pow(int i, int j);
 int square(int i)
 {
     return pow(i, 2);
 }
+```
+
 The code above adapts an interface of a function that raises an integer to an integer power to an interface of a function that squares an integer. In academic circles this trivial technique is called currying (after a logician Haskell Curry who performed mathematical acrobatics necessary to formalize it). Because in FP functions (as opposed to classes) are passed around as arguments, currying is used very often to adapt functions to an interface that someone else expects. Since the interface to functions is its arguments, currying is used to reduce the number of arguments (like in the example above).
 
 Functional languages come with this technique built in. You don't need to manually create a function that wraps the original, functional languages will do that for you. As usual, let's extend our language to support this technique.
@@ -261,20 +264,26 @@ Functional languages come with this technique built in. You don't need to manual
 square = int pow(int i, 2);
 This will automatically create a function square for us with one argument. It will call pow function with the second argument set to 2. This will get compiled to the following Java code:
 
+```java
 class square_function_t {
     int square(int i) {
         return pow(i, 2);
     }
 }
 square_function_t square = new square_function_t();
+```
+
 As you can see, we've simply created a wrapper for the original function. In FP currying is just that - a shortcut to quickly and easily create wrappers. You concentrate on your task, and the compiler writes the appropriate code for you! When do you use currying? This should be easy. Any time you'd like to use an adapter pattern (a wrapper).
 
 ####Lazy Evaluation
 Lazy (or delayed) evaluation is an interesting technique that becomes possible once we adopt a functional philosophy. We've already seen the following piece of code when we were talking about concurrency:
 
+```java
 String s1 = somewhatLongOperation1();
 String s2 = somewhatLongOperation2();
 String s3 = concatenate(s1, s2);
+```
+
 In an imperative language the order of evaluation would be clear. Because each function may affect or depend on an external state it would be necessary to execute them in order: first somewhatLongOperation1, then somewhatLongOperation2, followed by concatenate. Not so in functional languages.
 
 As we saw earlier somewhatLongOperation1 and somewhatLongOperation2 can be executed concurrently because we're guaranteed no function affects or depends on global state. But what if we don't want to run the two concurrently, do we need to run them in order? The answer is no. We only need to run these operations when another function depends on s1 and s2. We don't even have to run them before concatenate is called - we can delay their evaluation until they're required within concatenate. If we replace concatenate with a function that has a conditional and uses only one of its two parameters we may never evaluate one of the parameters at all! Haskell is an example of a delayed evaluation language. In Haskell you are not guaranteed that anything will be executed in order (or at all) because Haskell only executes code when it's required.
@@ -287,15 +296,21 @@ Lazy evaluation provides a tremendous potential for optimizations. A lazy compil
 ####Abstracting Control Structures
 Lazy evaluation provides a higher order of abstraction that allows implementing things in a way that would otherwise be impossible. For example consider implementing the following control structure:
 
+```java
 unless(stock.isEuropean()) {
     sendToSEC(stock);
 }
+```
+
 We want sendToSEC executed unless the stock is European. How can we implement unless? Without lazy evaluation we'd need some form of a macro system, but in a language like Haskell that's unnecessary. We can implement unless as a function!
 
+```java
 void unless(boolean condition, List code) {
     if(!condition)
         code;
 }
+```
+
 Note that code is never evaluated if the condition is true. We cannot reproduce this behavior in a strict language because the arguments would be evaluated before unless is entered.
 ####Infinite Data Structures
 Lazy languages allow for definition of infinite data structures, something that's much more complicated in a strict language. For example, consider a list with Fibonacci numbers. We clearly can't compute and infinite list in a reasonable amount of time or store it in memory. In strict languages like Java we simply define a Fibonacci function that returns a particular member from the sequence. In a language like Haskell we can abstract it further and simply define an infinite list of Fibonacci numbers. Because the language is lazy, only the necessary parts of the list that are actually used by the program are ever evaluated. This allows for abstracting a lot of problems and looking at them from a higher level (for example, we can use list processing functions on an infinite list).
@@ -303,8 +318,11 @@ Lazy languages allow for definition of infinite data structures, something that'
 ####Disadvantages
 Of course there ain't no such thing as a free lunch(tm). Lazy evaluation comes with a number of disadvantages. Mainly that it is, well, lazy. Many real world problems require strict evaluation. For example consider the following:
 
- System.out.println("Please enter your name: ");
+```java
+System.out.println("Please enter your name: ");
 System.in.readLine();
+```
+
 In a lazy language you have no guarantee that the first line will be executed before the second! This means we can't do IO, can't use native functions in any meaningful way (because they need to be called in order since they depend on side effects), and can't interact with the outside world! If we were to introduce primitives that allow ordered code execution we'd lose the benefits of reasoning about our code mathematically (which would take all of the benefits of functional programming with it). Fortunately not all is lost. Mathematicians got to work and developed a number of tricks to ensure code gets executed in particular order in a functional setting. We get the best of both worlds! These techniques include continuations, monads, and uniqueness typing. In this article we'll only deal with continuations. We'll leave monads and uniqueness typing for another time. Interestingly, continuations are useful for many things other than enforcing a particular order of evaluation. We'll talk about that as well.
 
 ###Continuations
@@ -312,17 +330,26 @@ Continuations to programming are what Da Vinci Code is to human history: an amaz
 
 When we learned about functions we only learned half truths based on a faulty assumption that functions must return their value to the original caller. In this sense continuations are a generalization of functions. A function must not necessarily return to its caller and may return to any part of the program. A "continuation" is a parameter we may choose to pass to our function that specifies where the function should return. The description may be more complicated than it sounds. Take a look at the following code:
 
- int i = add(5, 10);
+```java
+int i = add(5, 10);
 int j = square(i);
+```
+
 The function add returns 15 to be assigned to i, the place where add was originally called. After that the value of i is used to call square. Note that a lazy compiler can't rearrange these lines of code because the second line depends on successful evaluation of the first. We can rewrite this code block using Continuation Passing Style or CPS, where the function add doesn't return to the original caller but instead returns its result to square.
 
- int j = add(5, 10, square);
+```java
+int j = add(5, 10, square);
+```
+
 In this case add gets another parameter - a function that add must call with its result upon completion. In this case square is a continuation of add. In both cases j will equal 225.
 
 Here lays the first trick to force a lazy language to evaluate two expressions in order. Consider the following (familiar) IO code:
 
- System.out.println("Please enter your name: ");
+```java
+System.out.println("Please enter your name: ");
 System.in.readLine();
+```
+
 The two lines don't depend on each other and the compiler is free to rearrange them as it wishes. However, if we rewrite this code in CPS, there will be a dependency and the compiler will be forced to evaluate the two lines in order!
 
  System.out.println("Please enter your name: ", System.in.readLine);
@@ -347,15 +374,19 @@ Pattern matching is not a new or innovative feature. In fact, it has little to d
 
 Let's dive into pattern matching with an example. Here's a Fibonacci function in Java:
 
- int fib(int n) {
+```java
+int fib(int n) {
     if(n == 0) return 1;
     if(n == 1) return 1;
         
     return fib(n - 2) + fib(n - 1);
 }
+```
+
 And here's an example of a Fibonacci function in our Java-derived language that supports pattern matching:
 
- int fib(0) {
+```java
+int fib(0) {
     return 1;
 }
 int fib(1) {
@@ -364,22 +395,28 @@ int fib(1) {
 int fib(int n) {
     return fib(n - 2) + fib(n - 1);
 }
+```
+
 What's the difference? The compiler implements branching for us.
 
 What's the big deal? There isn't any. Someone noticed that a large number of functions contain very complicated switch statements (this is particularly true about functional programs) and decided that it's a good idea to abstract that away. We split the function definition into multiple ones, and put patterns in place of some arguments (sort of like overloading). When the function is called, the compiler compares the arguments with the definitions at runtime, and picks the correct one. This is usually done by picking the most specific definition available. For example, int fib(int n) can be called with n equal to 1, but it isn't because int fib(1) is more specific.
 
 Pattern matching is usually more complex than our example reveals. For example, an advanced pattern matching system will allow us to do the following:
 
- int f(int n < 10) { ... }
+```java
+int f(int n < 10) { ... }
 int f(int n) { ... }
+```
+
 When is pattern matching useful? In a surprisingly large number of cases! Every time you have a complex structure of nested ifs, pattern matching can do a better job with less code on your part. A good function that comes to mind is a standard WndProc function that all Win32 applications must provide (even though it's often abstracted away). Usually a pattern matching system can examine collections as well as simple values. For example, if you pass an array to your function you could pick out all arrays in which the first element is equal to 1 and the third element is greater than 3.
 
 Another benefit of pattern matching is that if you need to add or modify conditions, you don't have to go into one huge function. You simply add (or modify) appropriate definitions. This eliminates the need for a whole range of design patterns from the GoF book. The more complex your conditions are, the more pattern matching will help you. Once you're used to it, you start wondering how you ever got through your day without it.
 
 ###Closures
 So far we've discussed features in the context of "pure" functional languages - languages that are implementations of lambda calculus and don't include features that conflict with Church's formalism. However, many of the features of functional languages are useful outside of lambda calculus framework. While an implementation of an axiomatic system is useful because it allows thinking about programs in terms of mathematical expressions, it may or may not always be practical. Many languages choose to incorporate functional elements without strictly adhering to functional doctrine. Many such languages (like Common Lisp) don't require variables to be final - you can modify things in place. They also don't require functions to depend only on their arguments - functions are allowed to access state outside of their boundaries. But they do include functional features - like higher order functions. Passing functions around in impure languages is a little bit different than doing it in the confines of lambda calculus and requires support for an interesting feature often referred to as lexical closure. Let's take a look at some sample code. Remember, in this case variables aren't final and functions can refer to variables outside of their scope:
-
- Function makePowerFn(int power) {
+ 
+```java
+Function makePowerFn(int power) {
    int powerFn(int base) {
        return pow(base, power);
    }
@@ -389,9 +426,12 @@ So far we've discussed features in the context of "pure" functional languages - 
 
 Function square = makePowerFn(2);
 square(3); // returns 9
+```
+
 The function make-power-fn returns a function that takes a single argument and raises it to a certain power. What happens when we try to evaluate square(3)? The variable power isn't anywhere in scope of powerFn because makePowerFn has returned and its stack is long gone. How can square work, then? The language must, somehow, store the value of power somewhere for square to work. What if we create another function, cube, that raises something to the third power? The runtime must now store two copies of power, one for each function we generated using make-power-fn. The phenomenon of storing these values is called a closure. Closures don't only store arguments of a host function. For example, a closure can look like this:
 
- Function makeIncrementer() {
+```java
+Function makeIncrementer() {
    int n = 0;
 
    int increment() {
@@ -408,15 +448,20 @@ inc1(); // returns 3;
 inc2(); // returns 1;
 inc2(); // returns 2;
 inc2(); // returns 3;
+```
+
 The runtime manages to store n, so incrementers can access it. Furthermore, it stores various copies, one for each incrementer, even though they're supposed to disappear when makeIncrementer returns. What does this code compile to? How do closures work behind the scenes? Fortunately, we have a back stage pass.
 
 A little common sense goes a long way. The first observation is that local variables are no longer limited to simple scope rules and have an undefined lifetime. The obvious conclusion is that they're no longer stored on the stack - they must be stored on the heap instead<sup>8</sup>. A closure, then, is implemented just like a function we discussed earlier, except that it has an additional reference to the surrounding variables:
 
- class some_function_t {
+```java
+class some_function_t {
    SymbolTable parentScope;
    
    // ...
 }
+```
+
 When a closure references a variable that's not in its local scope, it consults this reference for a parent scope. That's it! Closures bring functional and OO worlds closer together. Every time you create a class that holds some state and pass it to somewhere else, think of closures. A closure is just an object that creates "member variables" on the fly by grabbing them from the scope, so you don't have to!
 
 ###What's next?
@@ -424,6 +469,7 @@ This article only scratches the surface of functional programming. Sometimes a s
 
 ###Comments?
 If you have any questions, comments, or suggestions, please drop a note at coffeemug@gmail.com. I'll be glad to hear your feedback.
+
 
 <sup>1</sup>When I was looking for a job in the fall of 2005 I often did ask this question. It's quite amusing how many blank stares I got. You would think that at about $300,000 a piece these people would at least have a good understanding of most tools available to them.     
 <sup>2</sup>This appears to be a controversial question. Physicists and mathematicians are forced to acknowledge that it isn't at all clear whether everything in the universe obeys the laws that can be described by mathematics.     
