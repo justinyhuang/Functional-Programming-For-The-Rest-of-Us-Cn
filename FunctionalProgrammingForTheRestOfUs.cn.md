@@ -285,7 +285,7 @@ unless(stock.isEuropean()) {
 }
 ```
 
-程序中只有在stock为European的时候才执行sendToSEC。如何实现例子中的unless？如果没有惰性求值就需要求助于某种形式的宏（译者：用if不行么？），不过在像Haskell这样的语言中就不需要那么麻烦了。直接实现一个unless函数就可以！
+程序中只有在stock为European的时候才执行sendToSEC。如何实现例子中的unless？如果没有惰性求值就需要求助于某种形式的宏，不过在像Haskell这样的语言中就不需要那么麻烦了。直接实现一个unless函数就可以！
 
 ```haskell
 void unless(boolean condition, List code) {
