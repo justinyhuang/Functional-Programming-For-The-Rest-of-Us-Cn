@@ -140,10 +140,10 @@ class MessageHandler {
         // ...
         msg.setClientCode("ABCD_123");
         // ...
-        
+
         sendMessage(msg);
     }
-    
+
     // ...
 }
 ```
@@ -160,10 +160,10 @@ class MessageHandler {
             msg.setClientCode("123_ABC");
         }
         // ...
-        
+
         sendMessage(msg);
     }
-    
+
     // ...
 }
 ```
@@ -176,12 +176,12 @@ abstract class MessageHandler {
         // ...
         msg.setClientCode(getClientCode());
         // ...
-        
+
         sendMessage(msg);
     }
-    
+
     abstract String getClientCode();
-    
+
     // ...
 }
 
@@ -206,10 +206,10 @@ class MessageHandler {
         // ...
         Message msg1 = msg.setClientCode(getClientCode());
         // ...
-        
+
         sendMessage(msg1);
     }
-    
+
     // ...
 }
 
@@ -337,8 +337,8 @@ System.in.readLine();
 这两行代码彼此之间没有依赖关系，因此编译器可以随意的重新安排它们的执行顺序。可是只要用CPS重写它，编译器就必须顺序执行了，因为重写后的代码存在依赖关系了。
 
 ```java
- System.out.println("Please enter your name: ", System.in.readLine);
-``` 
+System.out.println("Please enter your name: ", System.in.readLine);
+```
 
 这段新的代码中println需要结合其计算结果调用readLine，然后再返回readLine的返回值。这使得两个函数得以保证按顺序执行而且readLine总被执行（这是由于整个运算需要它的返回值作为最终结果）。Java的println是没有返回值的，但是如果它可以返回一个能被readLine接受的抽象值，问题就解决了！（译者：别忘了，这里作者一开始就在Java的基础上修改搭建自己的语言）当然，如果一直把函数按照这种方法串下去，代码很快就变得不可读了，可是没有人要求你一定要这样做。可以通过在语言中添加[语法糖](http://zh.wikipedia.org/wiki/%E8%AF%AD%E6%B3%95%E7%B3%96)的方式来解决这个问题，这样程序员只要按照顺序写代码，编译器负责自动把它们串起来就好了。于是就可以任意安排代码的执行顺序而不用担心会失去FP带来的好处了（包括可以用数学方法来分析我们的程序）！如果到这里还有人感到困惑，可以这样理解，函数只是有唯一成员的类的实例而已。试着重写上面两行程序，让println和readLine变成这种类的实例，所有问题就都搞清楚了。       
 到这里本章基本可以结束了，而我们仅仅了解到continuation的一点皮毛，对它的用途也知之甚少。我们可以用CPS完成整个程序，程序里所有的函数都有一个额外的continuation作为参数接受其他函数的返回值。还可以把任何程序转换为CPS的，需要做的只是把当中的函数看作是特殊的continuation（总是将返回值传给调用者的continuation）就可以了，简单到完全可以由工具自动完成（史上很多编译器就是这样做的）。    
@@ -358,10 +358,10 @@ System.in.readLine();
 还是直接用例子来看看什么是模式匹配吧，这是一个用Java写的Fibonacci函数：
 
 ```java
- int fib(int n) {
+int fib(int n) {
     if(n == 0) return 1;
     if(n == 1) return 1;
-        
+
     return fib(n - 2) + fib(n - 1);
 }
 ```
@@ -369,7 +369,7 @@ System.in.readLine();
 再看看用我们基于Java修改过的新语言写出来的Fibonacci函数，这种新语言就支持模式匹配：
 
 ```java
- int fib(0) {
+int fib(0) {
     return 1;
 }
 int fib(1) {
@@ -396,12 +396,12 @@ int f(int n) { ... }
 目前为止关于函数式编程各种功能的讨论都只局限在“纯”函数式语言范围内：这些语言都是lambda演算的实现并且都没有那些和阿隆佐形式系统相冲突的特性。然而，很多函数式语言的特性哪怕是在lambda演算框架之外都是很有用的。确实，如果一个公理系统的实现可以用数学思维来看待程序，那么这个实现还是很有用的，但这样的实现却不一定可以付诸实践。很多现实中的语言都选择吸收函数式编程的一些元素，却又不完全受限于函数式教条的束缚。很多这样的语言（比如Common Lisp）都不要求所有的变量必须为final，可以修改他们的值。也不要求函数只能依赖于它们的参数，而是可以读写函数外部的状态。同时这些语言又包含了FP的特性，如高阶函数。与在lambda演算限制下将函数作为参数传递不同，在指令式语言中要做到同样的事情需要支持一个有趣的特性，人们常把它称为lexical closure。还是来看看例子。要注意的是，这个例子中变量不是final，而且函数也可以读写其外部的变量：
 
 ```java
- Function makePowerFn(int power) {
-   int powerFn(int base) {
-       return pow(base, power);
-   }
+Function makePowerFn(int power) {
+    int powerFn(int base) {
+        return pow(base, power);
+    }
 
-   return powerFn;
+    return powerFn;
 }
 
 Function square = makePowerFn(2);
@@ -412,11 +412,11 @@ makePowerFn函数返回另一个函数，这个新的函数需要一个整数参
 
 ```java
 Function makeIncrementer() {
-   int n = 0;
+    int n = 0;
 
-   int increment() {
-       return ++n;
-   }
+    int increment() {
+        return ++n;
+    }
 }
 
 Function inc1 = makeIncrementer();
@@ -434,14 +434,14 @@ inc2(); // returns 3;
 一点小常识往往可以帮大忙。乍一看这些本地变量已经不再受限于基本的域限制并拥有无限的生命周期了。于是可以得出一个很明显的结论：它们已经不是存在栈上，而是堆上了<sup>8</sup>。这么说来closure的实现和前面讨论过的函数差不多，只不过closure多了一个额外的引用指向其外部的变量而已：
 
 ```java
- class some_function_t {
-   SymbolTable parentScope;
-   
-   // ...
+class some_function_t {
+    SymbolTable parentScope;
+
+    // ...
 }
 ```
 
-当closure需要访问不在它本地域的变量时，就可以通过这个引用到更外一层的父域中寻找该变量。谜底揭开了！closure将函数编程与面向对象的方法结合了起来。下一次为了保存并传递某些状态而创建类的时候，想想closure。它能在运行时从相应的域中获得变量，从而可以把该变量当初“成员变量”来访问，也因为这样，就不再需要去创建一个成员变量了。
+当closure需要访问不在它本地域的变量时，就可以通过这个引用到更外一层的父域中寻找该变量。谜底揭开了！closure将函数编程与面向对象的方法结合了起来。下一次为了保存并传递某些状态而创建类的时候，想想closure。它能在运行时从相应的域中获得变量，从而可以把该变量当成“成员变量”来访问，也因为这样，就不再需要去创建一个成员变量了。
 
 ### 路在何方？
 这篇文章仅仅涉及到函数式编程的一些皮毛。考虑到有时候星星之火可以燎原，所以如果它能给你一些帮助那就再好不过了。接下来我计划就[范畴论](http://zh.wikipedia.org/wiki/%E8%8C%83%E7%95%B4%E8%AE%BA)、monads、函数式编程数据结构、函数式语言中的[类型系统](http://zh.wikipedia.org/wiki/%E9%A1%9E%E5%9E%8B%E7%B3%BB%E7%B5%B1)、并行函数式编程、数据库的函数式编程以及更多的话题写些类似的文章。如果我可以写出（在我学习的同时）以上清单的一半，我的人生就完整了。于此同时，Google将是我们的良师益友。
