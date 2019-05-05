@@ -353,12 +353,12 @@ System.in.readLine();
 
 The two lines don't depend on each other and the compiler is free to rearrange them as it wishes. However, if we rewrite this code in CPS, there will be a dependency and the compiler will be forced to evaluate the two lines in order!
 
-```
+```java
  System.out.println("Please enter your name: ", System.in.readLine);
 ```
 
 
-In this case println needs to call readLine with its result and return the result of readLine. This allows us to ensure that the two lines are executed in order and that readLine is evaluated at all (because the whole computation expects the last value as a result). In case of Java println returns void but if it were to return an abstract value (that readLine would accept), we'd solve our problem! Of course chaining function calls like that will quickly become unreadable, but it isn't necessary. We could add syntactic sugar to the language that will allow us to simply type expressions in order, and the compiler would chain the calls for us automatically. We can now evaluate expressions in any order we wish without losing any of the benefits of FP (including the ability to reason about our programs mathematically)! If this is still confusing, remember that a function is just an instance of a class with one member. Rewrite above two lines so that println and readLine are instances of classes and everything will become clear.
+In this case `println `needs to call `readLine `with its result and return the result of `readLine`. This allows us to ensure that the two lines are executed in order and that `readLine `is evaluated at all (because the whole computation expects the last value as a result). In case of Java `println `returns void but if it were to return an abstract value (that `readLine `would accept), we'd solve our problem! Of course chaining function calls like that will quickly become unreadable, but it isn't necessary. We could add syntactic sugar to the language that will allow us to simply type expressions in order, and the compiler would chain the calls for us automatically. We can now evaluate expressions in any order we wish without losing any of the benefits of FP (including the ability to reason about our programs mathematically)! If this is still confusing, remember that a function is just an instance of a class with one member. Rewrite above two lines so that `println `and `readLine `are instances of classes and everything will become clear.
 
 I would now wrap up this section, except that we've only scratched the surface of continuations and their usefulness. We can write entire programs in CPS, where every function takes an extra continuation argument and passes the result to it. We can also convert any program to CPS simply by treating functions as special cases of continuations (functions that always return to their caller). This conversion is trivial to do automatically (in fact, many compilers do just that).
 
@@ -475,12 +475,18 @@ This article only scratches the surface of functional programming. Sometimes a s
 ### Comments?
 If you have any questions, comments, or suggestions, please drop a note at coffeemug@gmail.com. I'll be glad to hear your feedback.
 
+<sup>1</sup>When I was looking for a job in the fall of 2005 I often did ask this question. It's quite amusing how many blank stares I got. You would think that at about $300,000 a piece these people would at least have a good understanding of most tools available to them.
 
-<sup>1</sup>When I was looking for a job in the fall of 2005 I often did ask this question. It's quite amusing how many blank stares I got. You would think that at about $300,000 a piece these people would at least have a good understanding of most tools available to them.     
-<sup>2</sup>This appears to be a controversial question. Physicists and mathematicians are forced to acknowledge that it isn't at all clear whether everything in the universe obeys the laws that can be described by mathematics.     
-<sup>3</sup>I've always hated history lessons that offer a dry chronology of dates, names, and events. To me history is about the lives of people who changed the world. It is about their private reasons behind their actions, and the mechanisms by which they affected millions of souls. For this reason this history section is hopelessly incomplete. Only very relevant people and events are discussed.     
-<sup>4</sup>When I was learning about functional programming I was very annoyed by the term "lambda" because I couldn't really understand what it really means. In this context lambda is a function, the single Greek letter was just easier to write in a mathematical notation. Every time you hear "lambda" when talking about functional programming just translate it in your mind to "function".     
-<sup>5</sup>Interestingly Java strings are immutable anyway. It's rather interesting to explore the reasons for this treachery, but that would distract us from our goal.     
-<sup>6</sup>Most functional language compilers optimize recursive functions by transforming them to their iterative alternatives whenever possible. This is called a tail call optimization.     
-<sup>7</sup>The opposite isn't always true. While it is sometimes possible to prove that two pieces of code are equivalent, it isn't possible in all situations.     
-<sup>8</sup>This is actually no slower than storing on the stack because once you introduce a garbage collector, memory allocation becomes an O(1) operation.     
+<sup>2</sup>This appears to be a controversial question. Physicists and mathematicians are forced to acknowledge that it isn't at all clear whether everything in the universe obeys the laws that can be described by mathematics.
+
+<sup>3</sup>I've always hated history lessons that offer a dry chronology of dates, names, and events. To me history is about the lives of people who changed the world. It is about their private reasons behind their actions, and the mechanisms by which they affected millions of souls. For this reason this history section is hopelessly incomplete. Only very relevant people and events are discussed.
+
+<sup>4</sup>When I was learning about functional programming I was very annoyed by the term "lambda" because I couldn't really understand what it really means. In this context lambda is a function, the single Greek letter was just easier to write in a mathematical notation. Every time you hear "lambda" when talking about functional programming just translate it in your mind to "function".
+
+<sup>5</sup>Interestingly Java strings are immutable anyway. It's rather interesting to explore the reasons for this treachery, but that would distract us from our goal.
+
+<sup>6</sup>Most functional language compilers optimize recursive functions by transforming them to their iterative alternatives whenever possible. This is called a tail call optimization.
+
+<sup>7</sup>The opposite isn't always true. While it is sometimes possible to prove that two pieces of code are equivalent, it isn't possible in all situations.
+
+<sup>8</sup>This is actually no slower than storing on the stack because once you introduce a garbage collector, memory allocation becomes an O(1) operation.
