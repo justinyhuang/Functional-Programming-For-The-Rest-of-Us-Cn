@@ -451,6 +451,8 @@ Function makeIncrementer() {
     int increment() {
         return ++n;
     }
+    
+    return increment;
 }
 
 Function inc1 = makeIncrementer();
